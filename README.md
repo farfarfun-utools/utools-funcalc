@@ -52,7 +52,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 另跑 Chromium 浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和安装包。仓库中 `sh build.sh` 为统一构建入口。
+发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 使用 runner 预装的 Chrome 运行浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和安装包。仓库中 `sh build.sh` 为统一构建入口。
 
 推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发 Release，生成 `.upx` 和 `SHA256SUMS`。
 

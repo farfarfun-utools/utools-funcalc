@@ -36,10 +36,10 @@ const examples = [
   { title: '矩阵运算', expression: 'A = [1, 2; 3, 4]', note: '分号换行，逗号分列' },
 ]
 const functions = ['sqrt(2)', 'sin(pi / 6)', 'det(A)', 'inv(A)', 'transpose(A)', 'A * A', 'A .* A']
-const dateFormat = new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+const dateFormat = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 
 watch(query, () => { limit.value = 30 })
-watch(expression, () => { error.value = '' })
+watch(expression, () => { if (ready.value) error.value = '' })
 watch(theme, value => {
   document.documentElement.dataset.theme = value
   try { localStorage.setItem('funcalc-theme', value) } catch { /* 偏好保存失败不影响计算。 */ }

@@ -28,9 +28,9 @@ jobs:
           cache: pnpm
       - name: Check and build
         run: sh build.sh
-      - name: Install Chromium
+      - name: Verify runner browser
         if: runner.os == 'Linux'
-        run: pnpm exec playwright install --with-deps chromium
+        run: google-chrome --version
       - name: Browser regression tests
         if: runner.os == 'Linux'
         run: pnpm test:e2e

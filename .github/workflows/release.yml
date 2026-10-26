@@ -17,7 +17,7 @@ jobs:
       - name: Verify tag
         run: test "${GITHUB_REF_NAME}" = "v$(node -p "require('./package.json').version")"
       - run: sh build.sh
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: google-chrome --version
       - run: pnpm test:e2e
       - run: python3 scripts/package.py
       - name: Publish release
