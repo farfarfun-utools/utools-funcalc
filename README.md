@@ -1,3 +1,5 @@
+<p align="center"><img src="utools/logo.png" width="88" alt="算有所得"></p>
+
 # 算有所得 · FunCalc
 
 [产品主页](https://farfarfun.github.io/packages/utools-funcalc/)

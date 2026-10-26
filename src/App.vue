@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import logoUrl from '../utools/logo.png'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import MathFormula from './MathFormula.vue'
 import { calculate, errorText, expressionTex, valueSize, valueTex, valueText } from './lib/math'
@@ -213,7 +214,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="app-shell">
     <header class="app-header">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">∑</span><div><strong>算有所得</strong><span class="brand-caption">计算有迹可循</span></div></div>
+      <div class="brand"><img class="brand-mark" :src="logoUrl" alt="" /><div><strong>算有所得</strong><span class="brand-caption">计算有迹可循</span></div></div>
       <div class="header-actions">
         <span class="local-badge"><span aria-hidden="true"></span>本机存储</span>
         <button class="quiet" :aria-expanded="help" @click="help = !help">使用指南</button>
