@@ -8,7 +8,7 @@
 
 ## 界面预览
 
-以下截图来自 GitHub Actions 的真实浏览器测试。
+以下截图来自更名后通过的 [GitHub Actions 真实浏览器测试](https://github.com/farfarfun-utools/utools-funcalc/actions/runs/40373825269)。
 
 ![浅色模式：矩阵计算、公式预览与变量侧栏](docs/screenshots/light.png)
 
@@ -18,14 +18,6 @@
 ![深色模式：变量计算与历史结果](docs/screenshots/dark.png)
 
 </details>
-
-## 界面
-
-| 浅色 | 深色 |
-| --- | --- |
-| ![算有所得浅色界面](docs/screenshots/notebook-light.png) | ![算有所得深色界面](docs/screenshots/notebook-dark.png) |
-
-截图来自更名后通过的 [GitHub Actions 浏览器检查](https://github.com/farfarfun-utools/utools-funcalc/actions/runs/40373825269)。
 
 ## 安装
 
