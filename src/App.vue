@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
-import Formula from './Formula.vue'
+import MathFormula from './MathFormula.vue'
 import { calculate, errorText, expressionTex, valueSize, valueTex, valueText } from './lib/math'
 import { emptyNotebook, openNotebook, readNotebook, saveNotebook, type Entry, type Notebook } from './lib/storage'
 
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
             <button class="calculate" :disabled="!ready || busy || !expression.trim()" @click="submit">{{ busy ? '处理中…' : '计算' }} <span aria-hidden="true">↵</span></button>
           </div>
           <div id="input-hint" class="input-hint"><span><kbd>Enter</kbd> 计算并保存 <span class="hint-divider">·</span> <kbd>↑</kbd> 空输入时取上一条</span><button class="text-button" @click="insert('[1, 2; 3, 4]')">插入矩阵</button></div>
-          <div v-if="preview" class="preview"><span class="eyebrow">公式预览</span><Formula :tex="preview" :label="expression" /></div>
+          <div v-if="preview" class="preview"><span class="eyebrow">公式预览</span><MathFormula :tex="preview" :label="expression" /></div>
           <div v-if="error" class="error" role="alert"><span>{{ error }}</span><button :disabled="busy" @click="load">重新载入记录</button></div>
           <p v-else-if="!ready" class="muted" role="status">正在读取本机记录…</p>
         </div>
@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
           <h1>计算历史 <span>{{ notebook.entries.length }}</span></h1>
           <div class="history-tools"><button :disabled="!ready || !notebook.entries.length" @click="exportHistory">导出</button><button :disabled="busy || !notebook.entries.length" @click="clearDialog?.showModal()">清空</button></div>
         </div>
-        <div class="search-box"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input ref="search" v-model="query" type="search" aria-label="搜索历史" placeholder="搜索表达式或结果"><kbd>⌘ / Ctrl K</kbd></div>
+        <div class="search-box"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4.5 4.5" /></svg><input ref="search" v-model="query" type="search" aria-label="搜索历史" placeholder="搜索表达式或结果"><kbd>⌘ / Ctrl K</kbd></div>
 
         <div v-if="!notebook.entries.length && ready" class="empty-state">
           <div class="empty-symbol" aria-hidden="true">x + y = ?</div>
@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
           <li v-for="(entry, index) in filtered.slice(0, limit)" :key="entry.id" class="history-card" :class="{ latest: index === 0 && !query }">
             <div class="entry-meta"><span>{{ index === 0 && !query ? '最近一次' : '计算记录' }}</span><time :datetime="new Date(entry.createdAt).toISOString()">{{ dateFormat.format(entry.createdAt) }}</time></div>
             <button class="entry-expression" :title="`重新编辑 ${entry.expression}，计算时使用当前变量`" @click="useExpression(entry.expression)">{{ entry.expression }}<span aria-hidden="true">↗</span></button>
-            <div class="entry-result"><span class="equals" aria-hidden="true">=</span><Formula :tex="valueTex(entry.value)" :label="valueText(entry.value)" /></div>
+            <div class="entry-result"><span class="equals" aria-hidden="true">=</span><MathFormula :tex="valueTex(entry.value)" :label="valueText(entry.value)" /></div>
             <div class="entry-actions"><span class="value-kind">{{ valueSize(entry.value) }}</span><button @click="copy(valueText(entry.value))">复制结果</button><button @click="copy(`${expressionTex(entry.expression)} = ${valueTex(entry.value)}`)">复制 LaTeX</button><button :disabled="busy" :aria-label="`删除记录 ${entry.expression}`" @click="removeEntry(entry)">删除</button></div>
           </li>
         </ol>
@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
           <li v-for="[name, value] in variables" :key="name">
             <div class="variable-head"><button class="variable-name" :title="`插入变量 ${name}`" @click="insert(name)">{{ name }}</button><button class="delete-variable" :disabled="busy" :aria-label="`删除变量 ${name}`" @click="removeVariable(name)">×</button></div>
             <span class="variable-type">{{ name === 'ans' ? '上次结果' : valueSize(value) }}</span>
-            <Formula :tex="valueTex(value)" :label="valueText(value)" />
+            <MathFormula :tex="valueTex(value)" :label="valueText(value)" />
           </li>
         </ul>
         <div class="sidebar-note"><strong>保留的是当时的答案</strong><p>变量变化不会改写历史。重新计算会使用当前变量，并保存为新记录。</p></div>

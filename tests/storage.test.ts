@@ -18,7 +18,7 @@ function append(state: Notebook, expression: string): Notebook {
 test('重开数据库同时恢复变量和历史，修改变量不改写旧答案', async () => {
   let state = await saveNotebook(db, append(emptyNotebook(), 'price = 128'))
   state = await saveNotebook(db, append(state, 'price * 3'))
-  state = await saveNotebook(db, append(state, 'price = 5'))
+  await saveNotebook(db, append(state, 'price = 5'))
   db.close()
   db = await openNotebook()
   const restored = await readNotebook(db)
@@ -59,4 +59,14 @@ test('清空历史不删除变量，不自动截断旧记录', async () => {
   expect((await readNotebook(db)).entries).toHaveLength(1100)
   await saveNotebook(db, { ...saved, entries: [] })
   expect((await readNotebook(db)).variables.a).toBe('3')
+})
+
+test('损坏的存档不会被当成空历史继续写入', async () => {
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction('notebook', 'readwrite')
+    transaction.objectStore('notebook').put({ ...emptyNotebook(), variables: { x: '<script>' } }, 'state')
+    transaction.oncomplete = () => resolve()
+    transaction.onabort = () => reject(transaction.error)
+  })
+  await expect(readNotebook(db)).rejects.toThrow('停止写入')
 })
