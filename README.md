@@ -19,6 +19,14 @@
 
 </details>
 
+## 界面
+
+| 浅色 | 深色 |
+| --- | --- |
+| ![算有所得浅色界面](docs/screenshots/notebook-light.png) | ![算有所得深色界面](docs/screenshots/notebook-dark.png) |
+
+截图来自更名后通过的 [GitHub Actions 浏览器检查](https://github.com/farfarfun-utools/utools-funcalc/actions/runs/40373825269)。
+
 ## 安装
 
 在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
