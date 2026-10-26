@@ -47,6 +47,7 @@ test('删除与撤销、清空确认、变量仍保留', async ({ page }) => {
   await page.goto('/')
   const input = page.getByLabel('开始计算')
   await input.fill('x = 7')
+  await expect(page.getByRole('button', { name: '计算', exact: true })).toBeEnabled()
   await input.press('Enter')
   await expect(page.locator('.history-card')).toHaveCount(1)
   await page.getByRole('button', { name: '删除记录 x = 7', exact: true }).click()
