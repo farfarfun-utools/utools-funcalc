@@ -31,6 +31,12 @@ jobs:
       - name: Verify runner browser
         if: runner.os == 'Linux'
         run: google-chrome --version
+      - name: Install font for Chinese screenshots
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ~/.local/share/fonts
+          curl -fL --retry 2 --max-time 60 https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf -o ~/.local/share/fonts/NotoSansCJKsc-Regular.otf
+          fc-cache -f
       - name: Browser regression tests
         if: runner.os == 'Linux'
         run: pnpm test:e2e
