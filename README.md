@@ -10,7 +10,7 @@
 
 ## 界面预览
 
-以下截图来自更名后通过的 [GitHub Actions 真实浏览器测试](https://github.com/farfarfun-utools/utools-funcalc/actions/runs/40373825269)。
+以下截图来自采用统一品牌图标后通过的 [GitHub Actions 真实浏览器测试](https://github.com/farfarfun-utools/utools-funcalc/actions/runs/40375650527)。
 
 ![浅色模式：矩阵计算、公式预览与变量侧栏](docs/screenshots/light.png)
 
