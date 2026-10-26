@@ -51,7 +51,9 @@ function encode(value: unknown): Value {
 
 function decode(value: Value) {
   if (typeof value === 'string') return math.bignumber(value)
-  return math.matrix(value.map(row => typeof row === 'string' ? math.bignumber(row) : row.map(item => math.bignumber(item))))
+  return Array.isArray(value[0])
+    ? math.matrix((value as string[][]).map(row => row.map(item => math.bignumber(item))))
+    : math.matrix((value as string[]).map(item => math.bignumber(item)))
 }
 
 export function expressionTex(expression: string): string {

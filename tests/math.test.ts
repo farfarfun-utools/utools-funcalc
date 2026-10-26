@@ -33,6 +33,10 @@ describe('矩阵与公式', () => {
     expect(calculate('inv(A)', matrix.variables).value).toEqual([['-2', '1'], ['1.5', '-0.5']])
     expect(calculate('transpose(A)', matrix.variables).value).toEqual([['1', '3'], ['2', '4']])
   })
+  test('向量变量可用于点积', () => {
+    const vector = calculate('v = [1, 2, 3]', {})
+    expect(calculate('dot(v, v)', vector.variables).value).toBe('14')
+  })
   test('尺寸错误与奇异矩阵不保存', () => {
     expect(() => calculate('A * [1, 2, 3]', matrix.variables)).toThrow()
     expect(() => calculate('inv([1, 2; 2, 4])', {})).toThrow()
