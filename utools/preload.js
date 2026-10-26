@@ -10,7 +10,7 @@ utools.onPluginEnter(action => {
 window.funcalc = {
   saveExport(text) {
     const target = utools.showSaveDialog({
-      title: '导出 FunCalc 历史与变量',
+      title: '导出算有所得 FunCalc 历史与变量',
       defaultPath: `funcalc-${new Date().toISOString().slice(0, 10)}.json`,
       filters: [{ name: 'JSON', extensions: ['json'] }],
     })

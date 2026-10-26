@@ -45,7 +45,7 @@ export function openNotebook(): Promise<IDBDatabase> {
       resolve(request.result)
     }
     request.onerror = () => reject(new Error('无法打开本机历史库，请检查磁盘空间和存储权限'))
-    request.onblocked = () => reject(new Error('请关闭另一个 FunCalc 窗口后重试'))
+    request.onblocked = () => reject(new Error('请关闭另一个算有所得窗口后重试'))
   })
 }
 

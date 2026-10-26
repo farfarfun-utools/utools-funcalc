@@ -1,4 +1,6 @@
-# FunCalc
+# 算有所得 · FunCalc
+
+[产品主页](https://farfarfun.github.io/packages/utools-funcalc/)
 
 计算有迹可循。一个支持**变量、矩阵、LaTeX 排版与持久化历史**的 uTools 计算笔记本。
 
@@ -6,9 +8,9 @@
 
 ## 安装
 
-在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。也可以从 [Releases](https://github.com/farfarfun-utools/utools-funcalc/releases) 下载已发布的版本。
+在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
 
-同一个包支持 Windows、macOS、Linux。主输入框输入 `FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 进入；选中文字后也可以选择「计算表达式」。
+同一个包支持 Windows、macOS、Linux。主输入框输入 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 进入；选中文字后也可以选择「计算表达式」。
 
 ## 怎么用
 
