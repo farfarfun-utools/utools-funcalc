@@ -14,6 +14,7 @@ const busy = ref(false)
 const help = ref(false)
 const limit = ref(30)
 const input = ref<HTMLTextAreaElement>()
+const mainPane = ref<HTMLElement>()
 const search = ref<HTMLInputElement>()
 const clearDialog = ref<HTMLDialogElement>()
 const deleted = ref<Entry>()
@@ -87,6 +88,8 @@ async function persist(next: Notebook): Promise<boolean> {
 
 async function submit() {
   if (!ready.value || busy.value || !expression.value.trim()) return
+  clearTimeout(noticeTimer)
+  notice.value = ''
   const source = expression.value.trim()
   try {
     const result = calculate(source, toRaw(notebook.value.variables))
@@ -94,6 +97,7 @@ async function submit() {
     if (await persist({ ...notebook.value, variables: result.variables, entries: [entry, ...notebook.value.entries] })) {
       query.value = ''
       notify('已计算并保存')
+      mainPane.value?.scrollTo({ top: 0 })
       if (expression.value.trim() === source) void focusInput(true)
     }
   } catch (cause) { error.value = errorText(cause) }
@@ -218,7 +222,7 @@ onBeforeUnmount(() => {
     </header>
 
     <main class="workspace">
-      <section class="main-pane" aria-label="计算笔记本">
+      <section ref="mainPane" class="main-pane" aria-label="计算笔记本">
         <div class="composer">
           <div class="section-heading"><label for="expression">开始计算</label><span>40 位有效数字 · 弧度制</span></div>
           <div class="input-box">

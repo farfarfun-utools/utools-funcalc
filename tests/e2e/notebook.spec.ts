@@ -15,6 +15,13 @@ test('变量、矩阵、历史、重载、主题与键盘操作', async ({ page 
   }
   await expect(page.locator('.history-card')).toHaveCount(4)
   await expect(page.locator('.history-card').first().locator('.formula')).toHaveAttribute('aria-label', '[-2, 1; 1.5, -0.5]')
+  const lastAction = page.locator('.history-card').last().getByRole('button', { name: '复制结果', exact: true })
+  await lastAction.scrollIntoViewIfNeeded()
+  const actionBox = await lastAction.boundingBox()
+  const footerBox = await page.locator('.statusbar').boundingBox()
+  expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(footerBox!.y)
+  await expect(input).toBeInViewport()
+  await page.locator('.main-pane').evaluate(element => { element.scrollTop = 0 })
   await page.screenshot({ path: 'test-results/notebook-light.png', fullPage: true })
   await page.reload()
   await expect(page.locator('.history-card')).toHaveCount(4)
