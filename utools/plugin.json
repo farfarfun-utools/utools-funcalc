@@ -1,0 +1,23 @@
+{
+  "pluginName": "FunCalc",
+  "version": "0.1.0",
+  "description": "计算有迹可循：变量、矩阵、LaTeX 排版与历史记录",
+  "author": "farfarfun",
+  "main": "dist/index.html",
+  "preload": "preload.js",
+  "logo": "logo.png",
+  "pluginSetting": { "height": 620 },
+  "features": [
+    {
+      "code": "funcalc",
+      "explain": "打开计算笔记本与历史记录",
+      "platform": ["darwin", "win32", "linux"],
+      "cmds": ["FunCalc", "计算笔记", "历史计算器", "矩阵计算"]
+    },
+    {
+      "code": "calculate-selection",
+      "explain": "在 FunCalc 中计算选中的表达式",
+      "cmds": [{ "type": "over", "label": "计算表达式", "minLength": 1, "maxLength": 500 }]
+    }
+  ]
+}

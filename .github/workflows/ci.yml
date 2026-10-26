@@ -1,0 +1,55 @@
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Check and build
+        run: sh build.sh
+      - name: Install Chromium
+        if: runner.os == 'Linux'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser regression tests
+        if: runner.os == 'Linux'
+        run: pnpm test:e2e
+      - name: Upload screenshots and traces
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: funcalc-browser-checks
+          path: test-results/
+          if-no-files-found: warn
+      - name: Package plugin
+        if: runner.os == 'Linux'
+        run: python3 scripts/package.py
+      - name: Upload installable plugin
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: utools-funcalc-plugin
+          path: |
+            *.upx
+            SHA256SUMS
+          if-no-files-found: error

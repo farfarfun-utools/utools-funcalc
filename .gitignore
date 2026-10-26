@@ -1,0 +1,7 @@
+node_modules/
+utools/dist/
+dist/
+test-results/
+playwright-report/
+*.upx
+SHA256SUMS
