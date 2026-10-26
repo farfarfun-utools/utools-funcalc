@@ -6,6 +6,19 @@
 
 [![CI](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml/badge.svg)](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml)
 
+## 界面预览
+
+以下截图来自 GitHub Actions 的真实浏览器测试。
+
+![浅色模式：矩阵计算、公式预览与变量侧栏](docs/screenshots/light.png)
+
+<details>
+<summary>查看深色模式</summary>
+
+![深色模式：变量计算与历史结果](docs/screenshots/dark.png)
+
+</details>
+
 ## 安装
 
 在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
