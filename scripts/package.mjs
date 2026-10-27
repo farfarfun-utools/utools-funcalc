@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync, gunzipSync } from 'node:zlib'
 import { createPackage, extractFile } from '@electron/asar'
@@ -24,7 +24,7 @@ export async function packPlugin(pluginDirectory, outputFile) {
     await writeFile(verified, gunzipSync(bytes))
     if (!extractFile(verified, 'plugin.json').equals(manifestBytes)) throw new Error('UPX 清单校验失败')
     for (const name of [manifest.main, manifest.preload, manifest.logo]) {
-      if (typeof name !== 'string' || !extractFile(verified, name).length) throw new Error('UPX 缺少入口、preload 或图标')
+      if (typeof name !== 'string' || !extractFile(verified, normalize(name)).length) throw new Error('UPX 缺少入口、preload 或图标')
     }
     await writeFile(outputFile, bytes)
     return bytes
@@ -40,5 +40,5 @@ if (import.meta.main) {
   const name = `utools-funcalc-${version}.upx`
   const bytes = await packPlugin(plugin, join(root, name))
   await writeFile(join(root, 'SHA256SUMS'), `${createHash('sha256').update(bytes).digest('hex')}  ${name}\n`)
-  console.log(name)
+  process.stdout.write(`${name}\n`)
 }

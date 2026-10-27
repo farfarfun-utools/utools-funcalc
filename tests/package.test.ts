@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'vitest'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, normalize } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 import { extractFile, listPackage } from '@electron/asar'
 import { packPlugin } from '../scripts/package.mjs'
@@ -43,7 +43,7 @@ test('UPX 是 gzip 压缩的 ASAR，清单在根目录，页面和离线资源�
   expect(names).not.toContain('/README.md')
   for (const [name, contents] of Object.entries(files)) {
     if (name === 'README.md') continue
-    expect(extractFile(archive, name)).toEqual(Buffer.from(contents))
+    expect(extractFile(archive, normalize(name))).toEqual(Buffer.from(contents))
   }
 })
 
