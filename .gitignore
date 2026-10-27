@@ -4,4 +4,6 @@ dist/
 test-results/
 playwright-report/
 *.upx
+*-developer.zip
+utools/README.md
 SHA256SUMS

@@ -19,8 +19,16 @@ jobs:
       - run: sh build.sh
       - run: google-chrome --version
       - run: pnpm test:e2e
-      - run: node scripts/package.mjs
-      - name: Publish release
+      - name: Archive developer files (not an installer)
+        run: |
+          version=$(node -p "require('./package.json').version")
+          archive_name="utools-funcalc-${version}-developer.zip"
+          cp docs/developer-install.md utools/README.md
+          (cd utools && python3 -m zipfile -c "../$archive_name" plugin.json preload.js logo.png README.md dist)
+          python3 -m zipfile -t "$archive_name"
+          sha256sum "$archive_name" > SHA256SUMS
+          echo "DEVELOPER_ARCHIVE=$archive_name" >> "$GITHUB_ENV"
+      - name: Publish developer preview
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" ./*.upx SHA256SUMS --verify-tag --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" "$DEVELOPER_ARCHIVE" SHA256SUMS --verify-tag --prerelease --title "$GITHUB_REF_NAME · 开发者目录（非安装包）" --notes-file docs/release-developer.md

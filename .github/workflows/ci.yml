@@ -47,15 +47,18 @@ jobs:
           name: funcalc-browser-checks
           path: test-results/
           if-no-files-found: warn
-      - name: Package plugin
+      - name: Prepare developer directory
         if: runner.os == 'Linux'
-        run: node scripts/package.mjs
-      - name: Upload installable plugin
+        run: cp docs/developer-install.md utools/README.md
+      - name: Upload developer files (not an installer)
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
-          name: utools-funcalc-plugin
+          name: utools-funcalc-developer-files
           path: |
-            *.upx
-            SHA256SUMS
+            utools/plugin.json
+            utools/preload.js
+            utools/logo.png
+            utools/README.md
+            utools/dist/
           if-no-files-found: error

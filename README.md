@@ -21,11 +21,15 @@
 
 </details>
 
-## 安装
+## 安装状态与开发者目录
 
-前往 [Release 下载页](https://github.com/farfarfun-utools/utools-funcalc/releases/latest)，下载附件 `.upx` 文件后拖入 uTools 试装，不要下载 Source code。也可[直接下载 v0.1.1](https://github.com/farfarfun-utools/utools-funcalc/releases/download/v0.1.1/utools-funcalc-0.1.1.upx)。请使用 **0.1.1 或更新版本**；0.1.0 的归档格式有误，不能作为有效安装包。本版供真实客户端安装测试，验证情况见 Release 说明。
+**当前没有已验证可安装的 `.upxs`。** 用户客户端不识别此前提供的 `.upx`，相关 Release 附件已撤回。请勿继续使用，也不要通过修改后缀尝试安装。
 
-同一个包支持 Windows、macOS、Linux。主输入框输入 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 进入；选中文字后也可以选择「计算表达式」。
+[Release 页面](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.1)提供明确标注的开发者构建目录；也可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`。解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`，本机无需编译。
+
+请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。正式 `.upxs` 仍需通过官方工具导出并在目标客户端验收，仓库当前未实现这一环节。
+
+开发模式中可使用 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 入口；选中文字后也可选择「计算表达式」。
 
 ## 怎么用
 
@@ -69,16 +73,14 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 使用 runner 预装的 Chrome 运行浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和安装包。仓库中 `sh build.sh` 为统一构建入口。
+发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 使用 runner 预装的 Chrome 运行浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和开发者构建目录。仓库中 `sh build.sh` 为统一构建入口。
 
-推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发 Release，生成 `.upx` 和 `SHA256SUMS`。
+推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发开发者预览 Release，生成明确命名的 `-developer.zip` 和 `SHA256SUMS`，不会生成或发布 `.upx` / `.upxs` 安装包。
 
 详见 [交互设计](docs/design.md)。[MIT](LICENSE) · [farfarfun-utools](https://github.com/farfarfun-utools)
 
-## UPX 打包说明
+## 发布验证范围
 
-GitHub Actions 先用 Vite 构建页面，再通过 Electron 官方的 `@electron/asar` 将 `plugin.json`、`preload.js`、图标和 `dist/` 打成 ASAR，最后用 Node.js `zlib` 做 gzip 压缩，写入 `.upx`。流程见 [scripts/package.mjs](scripts/package.mjs)。
+此前验证过 ZIP 或 gzip/ASAR 结构，但这不能证明当前 uTools 客户端接受文件。用户已确认需要 `.upxs`，旧 `.upx` 发布路径已停止，相关打包器已移除。
 
-打包后会反向解压、读取 ASAR 清单并检查入口文件，测试还会校验资源字节没有丢失。SHA-256 仅用于核对下载文件，不能证明 uTools 安装兼容性。此流程生成普通离线 UPX，不生成官方签名或加密 UPXS；仍需在真实 uTools 客户端验收。
-
-格式依据：[现有 AriaNG UPX 包](https://github.com/marsvet/UTools-Plugins-Collection/blob/master/plugins/AriaNG-v1.1.5.upx)的二进制检查，以及[公开 UPX 读写实现](https://github.com/mowtwo/whatevertools/tree/main/packages/upx)。
+目前验证范围为源码检查、Web 构建、单元测试与浏览器交互测试。官方 `.upxs` 导出、签名及真实客户端安装验收尚未完成。
