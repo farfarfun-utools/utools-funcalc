@@ -92,10 +92,10 @@ jobs:
       - name: Checksum UPXS
         if: steps.upxs-config.outputs.enabled == 'true'
         run: cd release && sha256sum utools-funcalc.upxs > SHA256SUMS
-      - name: Upload UPXS preview for client validation
+      - name: Upload UPXS package
         if: steps.upxs-config.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: utools-funcalc-upxs-preview
+          name: utools-funcalc-upxs
           path: release/
           if-no-files-found: error

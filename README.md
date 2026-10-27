@@ -25,7 +25,7 @@
 
 **v0.1.3 已获用户实机安装验证，新的 UPXS 打包链路可用。** 此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
 
-[v0.1.3 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.3) 提供 `utools-funcalc-0.1.3.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 测试。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
+[v0.1.3 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.3) 提供 `utools-funcalc-0.1.3.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 使用。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
 
 开发模式可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`，解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`。
 
@@ -77,7 +77,7 @@ pnpm dev
 
 发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 使用 runner 预装的 Chrome 运行浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和开发者构建目录。仓库中 `sh build.sh` 为统一构建入口。
 
-推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发安装测试版 Release，构建 `.upxs` 并生成 `SHA256SUMS`；缺少目标 ID 或组织 Secrets 会停止发布。
+推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发正式版 Release，构建 `.upxs` 并生成 `SHA256SUMS`；缺少目标 ID 或组织 Secrets 会停止发布。
 
 详见 [交互设计](docs/design.md)。[MIT](LICENSE) · [farfarfun-utools](https://github.com/farfarfun-utools)
 
@@ -91,4 +91,4 @@ pnpm dev
 
 项目根目录的 [`identity.json`](identity.json) 明文维护 FunCalc 的官方项目 ID `zacvi5vk` 及导出环境信息。`mid`、`uid`、`cellphone` 分别由 `farfarfun-utools` 组织的 `UTOOLS_MID`、`UTOOLS_UID`、`UTOOLS_CELLPHONE` Secrets 注入；仓库中不保存这三个敏感值。同一开发者的其他项目可提供账号信息，但不能沿用其他插件的项目 ID。
 
-手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。v0.1.3 已完成用户实机安装验证；后续版本按各自的验证结果发布。
+手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。v0.1.3 已完成用户实机安装验证；后续版本按各自的验证结果发布。
