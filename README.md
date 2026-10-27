@@ -23,7 +23,7 @@
 
 ## 安装
 
-在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。请使用 **0.1.1 或更新版本**；0.1.0 的归档格式有误，不能作为有效安装包。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
+前往 [Release 下载页](https://github.com/farfarfun-utools/utools-funcalc/releases/latest)，下载附件 `.upx` 文件后拖入 uTools 试装，不要下载 Source code。也可[直接下载 v0.1.1](https://github.com/farfarfun-utools/utools-funcalc/releases/download/v0.1.1/utools-funcalc-0.1.1.upx)。请使用 **0.1.1 或更新版本**；0.1.0 的归档格式有误，不能作为有效安装包。本版供真实客户端安装测试，验证情况见 Release 说明。
 
 同一个包支持 Windows、macOS、Linux。主输入框输入 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 进入；选中文字后也可以选择「计算表达式」。
 
