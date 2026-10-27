@@ -75,7 +75,7 @@ jobs:
           fi
       - name: Package UPXS with shared tooling
         if: steps.upxs-config.outputs.enabled == 'true'
-        uses: farfarfun-action/utools-devtools@054b89c54ce2c52225b8bc6a02dbf09d074e4e0a # v0.1.1
+        uses: farfarfun-action/utools-devtools@96a0c88356254e81446e2caae1f725125219ef70 # v0.1.2
         with:
           source: utools
           output: release/utools-funcalc.upxs
