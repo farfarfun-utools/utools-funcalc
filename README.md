@@ -21,9 +21,9 @@
 
 </details>
 
-## 安装测试版与开发者目录
+## 安装与开发者目录
 
-当前提供 `.upxs` **安装测试版，仍待实际 uTools 客户端验收**。此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
+**v0.1.3 已获用户实机安装验证，新的 UPXS 打包链路可用。** 此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
 
 [v0.1.3 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.3) 提供 `utools-funcalc-0.1.3.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 测试。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
 
@@ -85,10 +85,10 @@ pnpm dev
 
 此前验证过 ZIP 或 gzip/ASAR 结构，但这不能证明当前 uTools 客户端接受文件。用户已确认需要 `.upxs`，旧 `.upx` 发布路径已停止，相关打包器已移除。
 
-目前验证范围为源码检查、Web 构建、单元测试与浏览器交互测试。共享工具已通过官方 `.upxs` 样本的格式互通测试，但 FunCalc 的真实客户端安装验收尚未完成。
+目前已完成源码检查、三平台 Web 构建、单元测试与浏览器交互测试。2026-10-27 用户确认 v0.1.3 可以在真实 uTools 客户端安装，打包链路验证通过；用户未提供具体操作系统和客户端版本，不据此扩大为所有环境均已实测。
 
 ### 配置 UPXS 自动打包
 
 项目根目录的 [`identity.json`](identity.json) 明文维护 FunCalc 的官方项目 ID `zacvi5vk` 及导出环境信息。`mid`、`uid`、`cellphone` 分别由 `farfarfun-utools` 组织的 `UTOOLS_MID`、`UTOOLS_UID`、`UTOOLS_CELLPHONE` Secrets 注入；仓库中不保存这三个敏感值。同一开发者的其他项目可提供账号信息，但不能沿用其他插件的项目 ID。
 
-手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。安装测试版需要通过目标 uTools 客户端实际安装后，才能标记为稳定版。
+手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。v0.1.3 已完成用户实机安装验证；后续版本按各自的验证结果发布。
