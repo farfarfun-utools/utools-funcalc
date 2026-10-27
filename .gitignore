@@ -7,3 +7,6 @@ playwright-report/
 *-developer.zip
 utools/README.md
 SHA256SUMS
+*.upxs
+identity*.json
+release/

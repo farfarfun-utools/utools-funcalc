@@ -27,7 +27,7 @@
 
 [Release 页面](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.1)提供明确标注的开发者构建目录；也可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`。解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`，本机无需编译。
 
-请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。正式 `.upxs` 仍需通过官方工具导出并在目标客户端验收，仓库当前未实现这一环节。
+请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。仓库已接入独立 [utools-devtools](https://github.com/farfarfun-action/utools-devtools) 打包 Action；配置本项目自己的官方导出身份后，可以在 CI 生成 `.upxs` 预览包，仍需在目标客户端验收。
 
 开发模式中可使用 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 入口；选中文字后也可选择「计算表达式」。
 
@@ -83,4 +83,10 @@ pnpm dev
 
 此前验证过 ZIP 或 gzip/ASAR 结构，但这不能证明当前 uTools 客户端接受文件。用户已确认需要 `.upxs`，旧 `.upx` 发布路径已停止，相关打包器已移除。
 
-目前验证范围为源码检查、Web 构建、单元测试与浏览器交互测试。官方 `.upxs` 导出、签名及真实客户端安装验收尚未完成。
+目前验证范围为源码检查、Web 构建、单元测试与浏览器交互测试。共享工具已通过官方 `.upxs` 样本的格式互通测试，但 FunCalc 的真实客户端安装验收尚未完成。
+
+### 配置 UPXS 自动打包
+
+先用官方工具为自己的 FunCalc 项目导出一次 `.upxs`，按 [utools-devtools 说明](https://github.com/farfarfun-action/utools-devtools#给自己的插件打包)提取 `identity.json`，将其完整内容保存在本仓库 Secret `UTOOLS_PACKAGE_IDENTITY`。该文件包含账号和设备信息，不要提交 Git，也不要使用官方开发工具或其他插件的身份。
+
+配置后手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。该预览包需通过你的 uTools 客户端实际安装后，才能作为安装验收通过的版本发布。

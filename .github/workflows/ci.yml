@@ -62,3 +62,31 @@ jobs:
             utools/README.md
             utools/dist/
           if-no-files-found: error
+      - name: Check private UPXS packaging identity
+        if: runner.os == 'Linux' && github.event_name != 'pull_request'
+        id: upxs-config
+        env:
+          UTOOLS_PACKAGE_IDENTITY: ${{ secrets.UTOOLS_PACKAGE_IDENTITY }}
+        run: |
+          if [ -n "$UTOOLS_PACKAGE_IDENTITY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::UPXS packaging awaits this project's own UTOOLS_PACKAGE_IDENTITY secret; developer files are available."
+          fi
+      - name: Package UPXS with shared tooling
+        if: steps.upxs-config.outputs.enabled == 'true'
+        uses: farfarfun-action/utools-devtools@054b89c54ce2c52225b8bc6a02dbf09d074e4e0a # v0.1.1
+        with:
+          source: utools
+          output: release/utools-funcalc.upxs
+          identity-json: ${{ secrets.UTOOLS_PACKAGE_IDENTITY }}
+      - name: Checksum UPXS
+        if: steps.upxs-config.outputs.enabled == 'true'
+        run: cd release && sha256sum utools-funcalc.upxs > SHA256SUMS
+      - name: Upload UPXS preview for client validation
+        if: steps.upxs-config.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: utools-funcalc-upxs-preview
+          path: release/
+          if-no-files-found: error
