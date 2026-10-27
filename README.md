@@ -25,7 +25,7 @@
 
 当前提供 `.upxs` **安装测试版，仍待实际 uTools 客户端验收**。此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
 
-[v0.1.2 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.2) 提供 `utools-funcalc-0.1.2.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 测试。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
+[v0.1.3 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.3) 提供 `utools-funcalc-0.1.3.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 测试。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
 
 开发模式可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`，解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`。
 

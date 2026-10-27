@@ -81,7 +81,7 @@ jobs:
           JS
       - name: Package UPXS with shared tooling
         if: steps.upxs-config.outputs.enabled == 'true'
-        uses: farfarfun-action/utools-devtools@013ce692f286b3c209f2841ad6fa50408ca153db # v0.1.3
+        uses: farfarfun-action/utools-devtools@c48e8ce06b6700d21c73917b3b16d6e5674c13ef # v0.1.4
         with:
           source: utools
           output: release/utools-funcalc.upxs

@@ -1,6 +1,6 @@
 {
   "pluginName": "算有所得",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "算有所得 FunCalc：变量、矩阵、LaTeX 排版与历史记录",
   "author": "farfarfun",
   "main": "dist/index.html",
