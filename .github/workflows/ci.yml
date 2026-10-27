@@ -62,24 +62,33 @@ jobs:
             utools/README.md
             utools/dist/
           if-no-files-found: error
-      - name: Check private UPXS packaging identity
+      - name: Check project ID and organization packaging secrets
         if: runner.os == 'Linux' && github.event_name != 'pull_request'
         id: upxs-config
         env:
-          UTOOLS_PACKAGE_IDENTITY: ${{ secrets.UTOOLS_PACKAGE_IDENTITY }}
+          UTOOLS_MID: ${{ secrets.UTOOLS_MID }}
+          UTOOLS_UID: ${{ secrets.UTOOLS_UID }}
+          UTOOLS_CELLPHONE: ${{ secrets.UTOOLS_CELLPHONE }}
         run: |
-          if [ -n "$UTOOLS_PACKAGE_IDENTITY" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::UPXS packaging awaits this project's own UTOOLS_PACKAGE_IDENTITY secret; developer files are available."
-          fi
+          node --input-type=module <<'JS'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const identity = JSON.parse(readFileSync('identity.json', 'utf8'));
+          if (identity.pluginId && ['UTOOLS_MID', 'UTOOLS_UID', 'UTOOLS_CELLPHONE'].every(key => process.env[key])) {
+            appendFileSync(process.env.GITHUB_OUTPUT, 'enabled=true\n');
+          } else {
+            console.log('::notice::UPXS packaging awaits the target pluginId in identity.json and the three organization secrets.');
+          }
+          JS
       - name: Package UPXS with shared tooling
         if: steps.upxs-config.outputs.enabled == 'true'
-        uses: farfarfun-action/utools-devtools@96a0c88356254e81446e2caae1f725125219ef70 # v0.1.2
+        uses: farfarfun-action/utools-devtools@013ce692f286b3c209f2841ad6fa50408ca153db # v0.1.3
         with:
           source: utools
           output: release/utools-funcalc.upxs
-          identity-json: ${{ secrets.UTOOLS_PACKAGE_IDENTITY }}
+          identity-file: identity.json
+          mid: ${{ secrets.UTOOLS_MID }}
+          uid: ${{ secrets.UTOOLS_UID }}
+          cellphone: ${{ secrets.UTOOLS_CELLPHONE }}
       - name: Checksum UPXS
         if: steps.upxs-config.outputs.enabled == 'true'
         run: cd release && sha256sum utools-funcalc.upxs > SHA256SUMS

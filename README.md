@@ -21,13 +21,15 @@
 
 </details>
 
-## 安装状态与开发者目录
+## 安装测试版与开发者目录
 
-**当前没有已验证可安装的 `.upxs`。** 用户客户端不识别此前提供的 `.upx`，相关 Release 附件已撤回。请勿继续使用，也不要通过修改后缀尝试安装。
+当前提供 `.upxs` **安装测试版，仍待实际 uTools 客户端验收**。此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
 
-[Release 页面](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.1)提供明确标注的开发者构建目录；也可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`。解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`，本机无需编译。
+[v0.1.2 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.2) 提供 `utools-funcalc-0.1.2.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 测试。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
 
-请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。仓库已接入独立 [utools-devtools](https://github.com/farfarfun-action/utools-devtools) 打包 Action；配置本项目自己的官方导出身份后，可以在 CI 生成 `.upxs` 预览包，仍需在目标客户端验收。
+开发模式可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`，解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`。
+
+请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。仓库已接入独立 [utools-devtools](https://github.com/farfarfun-action/utools-devtools) 打包 Action；项目 ID 明文维护，开发者敏感字段通过组织 Secrets 注入。
 
 开发模式中可使用 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 入口；选中文字后也可选择「计算表达式」。
 
@@ -75,7 +77,7 @@ pnpm dev
 
 发布构建统一由 GitHub Actions 执行：三平台代码检查、类型检查、单元测试和 Vite 构建；Linux 使用 runner 预装的 Chrome 运行浏览器回归测试，覆盖历史恢复、矩阵排版、主题、输入法、搜索、删除与窄屏布局，并上传截图和开发者构建目录。仓库中 `sh build.sh` 为统一构建入口。
 
-推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发开发者预览 Release，生成明确命名的 `-developer.zip` 和 `SHA256SUMS`，不会生成或发布 `.upx` / `.upxs` 安装包。
+推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发安装测试版 Release，构建 `.upxs` 并生成 `SHA256SUMS`；缺少目标 ID 或组织 Secrets 会停止发布。
 
 详见 [交互设计](docs/design.md)。[MIT](LICENSE) · [farfarfun-utools](https://github.com/farfarfun-utools)
 
@@ -87,6 +89,6 @@ pnpm dev
 
 ### 配置 UPXS 自动打包
 
-先用官方工具为自己的 FunCalc 项目导出一次 `.upxs`，按 [utools-devtools 说明](https://github.com/farfarfun-action/utools-devtools#给自己的插件打包)提取 `identity.json`，将其完整内容保存在本仓库 Secret `UTOOLS_PACKAGE_IDENTITY`。该文件包含账号和设备信息，不要提交 Git，也不要使用官方开发工具或其他插件的身份。
+项目根目录的 [`identity.json`](identity.json) 明文维护 FunCalc 的官方项目 ID `zacvi5vk` 及导出环境信息。`mid`、`uid`、`cellphone` 分别由 `farfarfun-utools` 组织的 `UTOOLS_MID`、`UTOOLS_UID`、`UTOOLS_CELLPHONE` Secrets 注入；仓库中不保存这三个敏感值。同一开发者的其他项目可提供账号信息，但不能沿用其他插件的项目 ID。
 
-配置后手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。该预览包需通过你的 uTools 客户端实际安装后，才能作为安装验收通过的版本发布。
+手动运行 CI（或推送代码），Linux 构建会调用固定版本的共享 Action，生成 `utools-funcalc-upxs-preview` 附件和校验和；未配置时明确跳过 UPXS 步骤，仍提供开发者目录。PR 不执行身份打包。安装测试版需要通过目标 uTools 客户端实际安装后，才能标记为稳定版。

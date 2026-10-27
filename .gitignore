@@ -8,5 +8,6 @@ playwright-report/
 utools/README.md
 SHA256SUMS
 *.upxs
-identity*.json
+identity.private*.json
+identity.local.json
 release/
