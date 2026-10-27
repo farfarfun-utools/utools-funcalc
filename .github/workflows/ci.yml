@@ -49,7 +49,7 @@ jobs:
           if-no-files-found: warn
       - name: Package plugin
         if: runner.os == 'Linux'
-        run: python3 scripts/package.py
+        run: node scripts/package.mjs
       - name: Upload installable plugin
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4

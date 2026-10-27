@@ -1,6 +1,6 @@
 {
   "name": "utools-funcalc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "算有所得 FunCalc：支持变量、矩阵、LaTeX 排版与历史记录的 uTools 计算笔记本",
   "private": true,
   "type": "module",
@@ -25,6 +25,7 @@
     "katex": "^0.19.1"
   },
   "devDependencies": {
+    "@electron/asar": "^4.3.1",
     "@eslint/js": "^9.39.5",
     "@vitejs/plugin-vue": "^6.0.10",
     "@playwright/test": "^1.64.1",

@@ -23,7 +23,7 @@
 
 ## 安装
 
-在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
+在 [GitHub Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 最新成功的任务中下载 `utools-funcalc-plugin`，解压后将 `.upx` 文件拖入 uTools。请使用 **0.1.1 或更新版本**；0.1.0 的归档格式有误，不能作为有效安装包。当前尚未发布正式 [Release](https://github.com/farfarfun-utools/utools-funcalc/releases)，请使用最新成功的 CI 构建产物。
 
 同一个包支持 Windows、macOS、Linux。主输入框输入 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 进入；选中文字后也可以选择「计算表达式」。
 
@@ -74,3 +74,11 @@ pnpm dev
 推送与 `package.json` / `plugin.json` 一致的 `v*` 标签可触发 Release，生成 `.upx` 和 `SHA256SUMS`。
 
 详见 [交互设计](docs/design.md)。[MIT](LICENSE) · [farfarfun-utools](https://github.com/farfarfun-utools)
+
+## UPX 打包说明
+
+GitHub Actions 先用 Vite 构建页面，再通过 Electron 官方的 `@electron/asar` 将 `plugin.json`、`preload.js`、图标和 `dist/` 打成 ASAR，最后用 Node.js `zlib` 做 gzip 压缩，写入 `.upx`。流程见 [scripts/package.mjs](scripts/package.mjs)。
+
+打包后会反向解压、读取 ASAR 清单并检查入口文件，测试还会校验资源字节没有丢失。SHA-256 仅用于核对下载文件，不能证明 uTools 安装兼容性。此流程生成普通离线 UPX，不生成官方签名或加密 UPXS；仍需在真实 uTools 客户端验收。
+
+格式依据：[现有 AriaNG UPX 包](https://github.com/marsvet/UTools-Plugins-Collection/blob/master/plugins/AriaNG-v1.1.5.upx)的二进制检查，以及[公开 UPX 读写实现](https://github.com/mowtwo/whatevertools/tree/main/packages/upx)。
