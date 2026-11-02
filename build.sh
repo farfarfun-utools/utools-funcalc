@@ -12,3 +12,6 @@ node -e 'const fs = require("node:fs"); const pkg = JSON.parse(fs.readFileSync("
 pnpm build
 test -f utools/dist/index.html
 test -f utools/logo.png
+if [ "${RUN_E2E:-0}" = 1 ]; then
+  pnpm test:e2e
+fi
