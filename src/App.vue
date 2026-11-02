@@ -2,7 +2,7 @@
 import logoUrl from '../utools/logo.png'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
 import MathFormula from './MathFormula.vue'
-import { calculate, errorText, expressionTex, valueSize, valueTex, valueText } from './lib/math'
+import { calculate, calculateForAgent, errorText, expressionTex, valueSize, valueTex, valueText } from './lib/math'
 import { emptyNotebook, openNotebook, readNotebook, saveNotebook, type Entry, type Notebook } from './lib/storage'
 
 const notebook = ref(emptyNotebook())
@@ -191,6 +191,7 @@ function exportHistory() {
 }
 
 onMounted(async () => {
+  window.utools?.registerTool?.('calculate_expression', ({ expression }) => calculateForAgent(expression))
   try {
     const saved = localStorage.getItem('funcalc-theme')
     if (saved === 'light' || saved === 'dark') theme.value = saved

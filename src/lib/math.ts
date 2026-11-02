@@ -100,6 +100,14 @@ export function calculate(expression: string, variables: Variables): { value: Va
   return { value, variables: next }
 }
 
+export function calculateForAgent(expression: unknown) {
+  if (typeof expression !== 'string') throw new Error('请提供表达式')
+  try {
+    const { value } = calculate(expression, {})
+    return { result: valueText(value), latex: valueTex(value) }
+  } catch (error) { throw new Error(errorText(error)) }
+}
+
 export function errorText(error: unknown): string {
   const text = error instanceof Error ? error.message : '计算失败，请检查表达式'
   if (text.includes('Undefined symbol')) return text.replace('Undefined symbol', '未定义变量')

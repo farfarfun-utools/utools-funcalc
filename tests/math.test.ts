@@ -1,7 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { calculate, expressionTex, valueTex, valueText } from '../src/lib/math'
+import { calculate, calculateForAgent, expressionTex, valueTex, valueText } from '../src/lib/math'
 
 describe('实数计算', () => {
+  test('AI 一次性计算不依赖或修改笔记本变量', () => {
+    expect(calculateForAgent('0.1 + 0.2')).toEqual({ result: '0.3', latex: '0.3' })
+    expect(() => calculateForAgent('ans + 1')).toThrow('未定义')
+    expect(() => calculateForAgent(null)).toThrow('表达式')
+  })
   test.each([
     ['0.1 + 0.2', '0.3'], ['(128 + 64) * 0.85', '163.2'],
     ['2 + 3 * 4', '14'], ['2^3^2', '512'], ['-2^2', '-4'],
