@@ -26,8 +26,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Check and build
-        run: sh build.sh
       - name: Verify runner browser
         if: runner.os == 'Linux'
         run: google-chrome --version
@@ -37,9 +35,10 @@ jobs:
           mkdir -p ~/.local/share/fonts
           curl -fL --retry 2 --max-time 60 https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf -o ~/.local/share/fonts/NotoSansCJKsc-Regular.otf
           fc-cache -f
-      - name: Browser regression tests
-        if: runner.os == 'Linux'
-        run: pnpm test:e2e
+      - name: Check and build
+        run: sh build.sh
+        env:
+          RUN_E2E: ${{ runner.os == 'Linux' && '1' || '0' }}
       - name: Upload screenshots and traces
         if: always() && runner.os == 'Linux'
         uses: actions/upload-artifact@v4

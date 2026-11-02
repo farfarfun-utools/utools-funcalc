@@ -29,9 +29,10 @@ jobs:
           }
           if (!JSON.parse(readFileSync('identity.json', 'utf8')).pluginId) throw new Error('Missing target pluginId');
           JS
-      - run: sh build.sh
       - run: google-chrome --version
-      - run: pnpm test:e2e
+      - run: sh build.sh
+        env:
+          RUN_E2E: '1'
       - name: Set package filename
         run: |
           version=$(node -p "require('./package.json').version")
