@@ -19,5 +19,18 @@
       "explain": "在算有所得中计算选中的表达式",
       "cmds": [{ "type": "over", "label": "计算表达式", "minLength": 1, "maxLength": 500 }]
     }
-  ]
+  ],
+  "tools": {
+    "calculate_expression": {
+      "description": "用 FunCalc 的 40 位精度计算一次表达式，返回结果和 LaTeX；不读取或修改计算笔记本的变量与历史。",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expression": { "type": "string", "description": "要计算的表达式，最多 500 个字符", "maxLength": 500 }
+        },
+        "required": ["expression"]
+      }
+    }
+  }
 }
