@@ -40,6 +40,16 @@ const examples = [
 const functions = ['sqrt(2)', 'sin(pi / 6)', 'det(A)', 'inv(A)', 'transpose(A)', 'A * A', 'A .* A']
 const dateFormat = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 
+function uniqueEntries(entries: Entry[]): Entry[] {
+  const seen = new Set<string>()
+  return entries.filter(entry => {
+    const key = JSON.stringify([entry.expression, entry.value])
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 watch(query, () => { limit.value = 30 })
 watch(expression, () => { if (ready.value) error.value = '' })
 watch(theme, value => {
@@ -64,7 +74,8 @@ async function load() {
   busy.value = true
   try {
     db ??= await openNotebook()
-    notebook.value = await readNotebook(db)
+    const saved = await readNotebook(db)
+    notebook.value = { ...saved, entries: uniqueEntries(saved.entries) }
     ready.value = true
     error.value = ''
   } catch (cause) {
@@ -95,7 +106,7 @@ async function submit() {
   try {
     const result = calculate(source, toRaw(notebook.value.variables))
     const entry: Entry = { id: crypto.randomUUID(), expression: source, value: result.value, createdAt: Date.now() }
-    if (await persist({ ...notebook.value, variables: result.variables, entries: [entry, ...notebook.value.entries] })) {
+    if (await persist({ ...notebook.value, variables: result.variables, entries: uniqueEntries([entry, ...notebook.value.entries]) })) {
       query.value = ''
       notify('已计算并保存')
       mainPane.value?.scrollTo({ top: 0 })
@@ -192,6 +203,14 @@ function exportHistory() {
 
 onMounted(async () => {
   window.utools?.registerTool?.('calculate_expression', ({ expression }) => calculateForAgent(expression))
+  window.utools?.onMainPush?.(action => {
+    if (action.code !== 'quick-calc' || typeof action.payload !== 'string') return []
+    try { return [{ text: valueText(calculate(action.payload, {}).value), title: '选择后复制结果' }] }
+    catch { return [] }
+  }, action => {
+    if (action.code === 'quick-calc' && action.option?.text && window.utools?.copyText(action.option.text)) window.utools.hideMainWindow()
+    return false
+  })
   try {
     const saved = localStorage.getItem('funcalc-theme')
     if (saved === 'light' || saved === 'dark') theme.value = saved
@@ -254,14 +273,14 @@ onBeforeUnmount(() => {
         <div v-if="!notebook.entries.length && ready" class="empty-state">
           <div class="empty-symbol" aria-hidden="true">x + y = ?</div>
           <h2>从一个想法，算到一个答案</h2>
-          <p>每次计算都会留下记录，下次打开还能接着算。</p>
+          <p>计算结果会保存在本机，相同的表达式和结果只保留最近一次。</p>
           <div class="examples"><button v-for="item in examples" :key="item.title" @click="useExpression(item.expression)"><strong>{{ item.title }} <span aria-hidden="true">↗</span></strong><code>{{ item.expression }}</code><span>{{ item.note }}</span></button></div>
         </div>
         <p v-else-if="!filtered.length && ready" class="no-results">没有匹配的记录，换个关键词试试。</p>
         <ol v-else class="history-list" aria-label="计算历史记录">
           <li v-for="(entry, index) in filtered.slice(0, limit)" :key="entry.id" class="history-card" :class="{ latest: index === 0 && !query }">
-            <div class="entry-meta"><span>{{ index === 0 && !query ? '最近一次' : '计算记录' }}</span><time :datetime="new Date(entry.createdAt).toISOString()">{{ dateFormat.format(entry.createdAt) }}</time></div>
             <button class="entry-expression" :title="`重新编辑 ${entry.expression}，计算时使用当前变量`" @click="useExpression(entry.expression)">{{ entry.expression }}<span aria-hidden="true">↗</span></button>
+            <time class="entry-meta" :datetime="new Date(entry.createdAt).toISOString()">{{ dateFormat.format(entry.createdAt) }}</time>
             <div class="entry-result"><span class="equals" aria-hidden="true">=</span><MathFormula :tex="valueTex(entry.value)" :label="valueText(entry.value)" /></div>
             <div class="entry-actions"><span class="value-kind">{{ valueSize(entry.value) }}</span><button @click="copy(valueText(entry.value))">复制结果</button><button @click="copy(`${expressionTex(entry.expression)} = ${valueTex(entry.value)}`)">复制 LaTeX</button><button :disabled="busy" :aria-label="`删除记录 ${entry.expression}`" @click="removeEntry(entry)">删除</button></div>
           </li>
@@ -280,7 +299,7 @@ onBeforeUnmount(() => {
             <MathFormula :tex="valueTex(value)" :label="valueText(value)" />
           </li>
         </ul>
-        <div class="sidebar-note"><strong>保留的是当时的答案</strong><p>变量变化不会改写历史。重新计算会使用当前变量，并保存为新记录。</p></div>
+        <div class="sidebar-note"><strong>保留的是当时的答案</strong><p>变量变化不会改写历史。重新计算会使用当前变量，相同结果合并为最近一次。</p></div>
       </aside>
     </main>
 

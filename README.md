@@ -25,13 +25,14 @@
 
 **v0.1.3 已获用户实机安装验证，新的 UPXS 打包链路可用；v0.1.4 的 AI 工具仍需实机验收。** 此前 `.upx` 不被用户客户端识别，相关附件已撤回，不要通过修改后缀尝试安装。
 
-[v0.1.5 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.5) 提供 `utools-funcalc-0.1.5.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 使用。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
+[v0.1.6 Release](https://github.com/farfarfun-utools/utools-funcalc/releases/tag/v0.1.6) 提供 `utools-funcalc-0.1.6.upxs` 和 `SHA256SUMS`。下载 `.upxs` 后导入 uTools 使用。同一份 Web 插件适用于 Windows、macOS、Linux，本机无需编译。
 
 开发模式可从 [Actions](https://github.com/farfarfun-utools/utools-funcalc/actions/workflows/ci.yml) 下载 `utools-funcalc-developer-files`，解压后包含 `plugin.json`、preload、图标和已编译的 `dist/`。
 
 请按[开发者加载说明](docs/developer-install.md)在官方 uTools 开发者工具中配置工程，使用「安装（开发模式）」测试。仓库已接入独立 [utools-devtools](https://github.com/farfarfun-action/utools-devtools) 打包 Action；项目 ID 明文维护，开发者敏感字段通过组织 Secrets 注入。
 
 开发模式中可使用 `算有所得`、`FunCalc`、`计算笔记`、`历史计算器` 或 `矩阵计算` 入口；选中文字后也可选择「计算表达式」。
+在 uTools 主搜索框直接输入数字算式（如 `0.1 + 0.2`）也会显示计算结果；选择结果可复制数值。此预览不读取变量，也不写入历史。
 
 ## AI / MCP 工具
 
@@ -51,7 +52,7 @@
 | `transpose(A)` / `det(A)` / `inv(A)` | 转置 / 行列式 / 逆矩阵 |
 | `sqrt(2)` / `sin(pi / 6)` | 常用数学函数；三角函数采用弧度制 |
 
-输入时显示公式预览，按 **Enter** 计算并保存。点击历史表达式重新编辑，按 Enter 使用**当前变量**重新计算。修改变量不会改写历史的旧答案。
+输入时显示公式预览，按 **Enter** 计算并保存。点击历史表达式重新编辑，按 Enter 使用**当前变量**重新计算。相同表达式和结果只保留最近一次；变量变化算出的不同答案仍会保留。
 
 - 变量和结果在侧栏显示；点击变量名插入输入框。关闭插件后重新打开仍会保留。
 - 结果与矩阵通过 KaTeX 排版；支持复制纯文本结果或 LaTeX。输入语言是数学表达式，**不是 LaTeX 源码**。
@@ -62,7 +63,7 @@
 
 ## 数据与边界
 
-历史和变量保存在插件页面的 **IndexedDB**，一次计算通过同一事务提交两者。写入失败会明确报错，原记录保留；不自动截断或删除历史。多个窗口同时修改时拒绝覆盖过期状态，提示重新载入。
+历史和变量保存在插件页面的 **IndexedDB**，一次计算通过同一事务提交两者。写入失败会明确报错，原记录保留；不会自动截断历史，重复的表达式和结果会合并。多个窗口同时修改时拒绝覆盖过期状态，提示重新载入。
 
 插件本身没有服务器、遥测、模型调用或云同步。清除插件数据、卸载插件或更换运行环境可能清除本机数据库，请按需导出存档。
 

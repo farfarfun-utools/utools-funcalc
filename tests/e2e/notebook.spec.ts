@@ -14,6 +14,7 @@ test('变量、矩阵、历史、重载、主题与键盘操作', async ({ page 
     await expect(page.locator('.history-card').first().locator('.entry-expression')).toContainText(expression)
   }
   await expect(page.locator('.history-card')).toHaveCount(4)
+  expect(await page.locator('.history-card').last().evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(95)
   await expect(page.locator('.history-card').first().locator('.formula')).toHaveAttribute('aria-label', '[-2, 1; 1.5, -0.5]')
   const lastAction = page.locator('.history-card').last().getByRole('button', { name: '复制结果', exact: true })
   await lastAction.scrollIntoViewIfNeeded()
@@ -45,6 +46,7 @@ test('变量、矩阵、历史、重载、主题与键盘操作', async ({ page 
   await expect(page.getByRole('alert')).toBeVisible()
   await expect(page.locator('.history-card')).toHaveCount(6)
   await page.setViewportSize({ width: 375, height: 812 })
+  expect(await page.locator('.history-card').last().evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(95)
   await page.screenshot({ path: 'test-results/notebook-mobile.png', fullPage: true })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   expect(errors).toEqual([])
@@ -70,4 +72,25 @@ test('删除与撤销、清空确认、变量仍保留', async ({ page }) => {
   await input.fill('x + 1')
   await input.press('Enter')
   await expect(page.locator('.history-card').first().locator('.formula')).toHaveAttribute('aria-label', '8')
+})
+
+test('重复计算只保留最新记录，变量改变后的不同结果仍保留', async ({ page }) => {
+  await page.goto('/')
+  const input = page.getByLabel('开始计算')
+  for (const expression of ['price = 7', 'price * 2', 'price = 7', 'price * 2']) {
+    await input.fill(expression)
+    await input.press('Enter')
+    await expect(page.getByRole('button', { name: '计算', exact: true })).toBeEnabled()
+  }
+  await expect(page.locator('.history-card')).toHaveCount(2)
+  await expect(page.locator('.history-card').first().locator('.entry-expression')).toContainText('price * 2')
+  await input.fill('price = 8')
+  await input.press('Enter')
+  await expect(page.locator('.history-card')).toHaveCount(3)
+  await input.fill('price * 2')
+  await input.press('Enter')
+  await expect(page.locator('.history-card')).toHaveCount(4)
+  await expect(page.locator('.history-card').first().locator('.formula')).toHaveAttribute('aria-label', '16')
+  await page.reload()
+  await expect(page.locator('.history-card')).toHaveCount(4)
 })
