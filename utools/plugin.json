@@ -1,6 +1,6 @@
 {
   "pluginName": "算有所得",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "算有所得 FunCalc：变量、矩阵、LaTeX 排版与历史记录",
   "author": "farfarfun",
   "main": "dist/index.html",
@@ -18,6 +18,12 @@
       "code": "calculate-selection",
       "explain": "在算有所得中计算选中的表达式",
       "cmds": [{ "type": "over", "label": "计算表达式", "minLength": 1, "maxLength": 500 }]
+    },
+    {
+      "code": "quick-calc",
+      "explain": "直接查看数字算式的结果",
+      "mainPush": true,
+      "cmds": [{ "type": "regex", "label": "计算结果", "match": "^[\\s+.(（−-]*\\d[\\d\\s.eE+*/^%()×÷−（）-]*$", "maxLength": 500 }]
     }
   ],
   "tools": {
