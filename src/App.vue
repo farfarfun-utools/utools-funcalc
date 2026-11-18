@@ -168,7 +168,7 @@ async function removeEntry(entry: Entry) {
 async function undoDelete() {
   if (!deleted.value) return
   const entries = [...notebook.value.entries, deleted.value].sort((a, b) => b.createdAt - a.createdAt)
-  if (await persist({ ...notebook.value, entries })) deleted.value = undefined
+  if (await persist({ ...notebook.value, entries: uniqueEntries(entries) })) deleted.value = undefined
 }
 
 async function removeVariable(name: string) {
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 
         <div class="history-toolbar">
           <h1>计算历史 <span>{{ notebook.entries.length }}</span></h1>
-          <div class="history-tools"><button :disabled="!ready || !notebook.entries.length" @click="exportHistory">导出</button><button :disabled="busy || !notebook.entries.length" @click="clearDialog?.showModal()">清空</button></div>
+          <div class="history-tools"><button :disabled="!ready || (!notebook.entries.length && !variables.length)" @click="exportHistory">导出</button><button :disabled="busy || !notebook.entries.length" @click="clearDialog?.showModal()">清空</button></div>
         </div>
         <div class="search-box"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4.5 4.5" /></svg><input ref="search" v-model="query" type="search" aria-label="搜索历史" placeholder="搜索表达式或结果"><kbd>⌘ / Ctrl K</kbd></div>
 
