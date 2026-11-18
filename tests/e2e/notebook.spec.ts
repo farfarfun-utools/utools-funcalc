@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 test('变量、矩阵、历史、重载、主题与键盘操作', async ({ page }) => {
   const errors: string[] = []
@@ -69,6 +70,10 @@ test('删除与撤销、清空确认、变量仍保留', async ({ page }) => {
   await page.getByRole('button', { name: '清空', exact: true }).click()
   await page.getByRole('button', { name: '确认清空', exact: true }).click()
   await expect(page.locator('.history-card')).toHaveCount(0)
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: '导出', exact: true }).click()
+  const file = await (await download).path()
+  expect(JSON.parse(await readFile(file!, 'utf8'))).toMatchObject({ entries: [], variables: { x: '7' } })
   await input.fill('x + 1')
   await input.press('Enter')
   await expect(page.locator('.history-card').first().locator('.formula')).toHaveAttribute('aria-label', '8')
@@ -84,6 +89,14 @@ test('重复计算只保留最新记录，变量改变后的不同结果仍保�
   }
   await expect(page.locator('.history-card')).toHaveCount(2)
   await expect(page.locator('.history-card').first().locator('.entry-expression')).toContainText('price * 2')
+  await page.getByRole('button', { name: '删除记录 price * 2', exact: true }).click()
+  await expect(page.locator('.history-card')).toHaveCount(1)
+  await input.fill('price * 2')
+  await input.press('Enter')
+  await expect(page.locator('.history-card')).toHaveCount(2)
+  await page.getByRole('button', { name: '撤销删除' }).click()
+  await expect(page.getByRole('button', { name: '撤销删除' })).toHaveCount(0)
+  await expect(page.locator('.history-card')).toHaveCount(2)
   await input.fill('price = 8')
   await input.press('Enter')
   await expect(page.locator('.history-card')).toHaveCount(3)
