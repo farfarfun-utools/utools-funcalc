@@ -2,11 +2,15 @@
 set -eu
 cd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 pnpm install --frozen-lockfile
-check_failed=0
-pnpm lint || check_failed=1
-pnpm typecheck || check_failed=1
-pnpm test || check_failed=1
-test "$check_failed" = 0
+if [ "${SKIP_CHECKS:-0}" = "1" ]; then
+  echo "SKIP_CHECKS=1: skipping lint / typecheck / test"
+else
+  check_failed=0
+  pnpm lint || check_failed=1
+  pnpm typecheck || check_failed=1
+  pnpm test || check_failed=1
+  test "$check_failed" = 0
+fi
 node --check utools/preload.js
 node -e 'const fs = require("node:fs"); const pkg = JSON.parse(fs.readFileSync("package.json")); const plugin = JSON.parse(fs.readFileSync("utools/plugin.json")); if (pkg.version !== plugin.version) throw new Error("版本号不一致")'
 pnpm build
