@@ -36,13 +36,40 @@ function validNotebook(state: Notebook): boolean {
     && Object.entries(state.variables).every(([name, value]) => (name === 'ans' || validName(name)) && validValue(value))
 }
 
-export function openNotebook(): Promise<IDBDatabase> {
+function errorDetail(cause: unknown): { name?: string; message?: string } | undefined {
+  if (!cause || typeof cause !== 'object') return undefined
+  const record = cause as { name?: unknown; message?: unknown }
+  return {
+    name: typeof record.name === 'string' ? record.name : undefined,
+    message: typeof record.message === 'string' ? record.message : undefined,
+  }
+}
+
+function saveErrorMessage(cause: unknown): string {
+  const detail = errorDetail(cause)
+  if (detail?.name === 'QuotaExceededError') return '保存失败：磁盘空间不足；原记录没有被覆盖'
+  if (detail?.message) return `保存失败（${detail.message}），原记录没有被覆盖`
+  return '保存失败，请检查磁盘空间；原记录没有被覆盖'
+}
+
+export function openNotebook(onClose?: () => void): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('funcalc-notebook', 1)
     request.onupgradeneeded = () => request.result.createObjectStore('notebook')
     request.onsuccess = () => {
-      request.result.onversionchange = () => request.result.close()
-      resolve(request.result)
+      const db = request.result
+      let closed = false
+      const notifyClose = () => {
+        if (closed) return
+        closed = true
+        onClose?.()
+      }
+      db.onversionchange = () => {
+        db.close()
+        notifyClose()
+      }
+      db.onclose = notifyClose
+      resolve(db)
     }
     request.onerror = () => reject(new Error('无法打开本机历史库，请检查磁盘空间和存储权限'))
     request.onblocked = () => reject(new Error('请关闭另一个算有所得窗口后重试'))
@@ -51,39 +78,96 @@ export function openNotebook(): Promise<IDBDatabase> {
 
 export function readNotebook(db: IDBDatabase): Promise<Notebook> {
   return new Promise((resolve, reject) => {
+    let settled = false
+    const fail = (error: Error) => {
+      if (settled) return
+      settled = true
+      reject(error)
+    }
     const transaction = db.transaction('notebook', 'readonly')
     const request = transaction.objectStore('notebook').get('state')
+    let message = '读取历史失败，请重新载入'
+    request.onerror = () => {
+      const detail = errorDetail(request.error)
+      if (detail?.message) message = `读取历史失败：${detail.message}`
+    }
     transaction.oncomplete = () => {
+      if (settled) return
+      settled = true
       const state = request.result as Notebook | undefined
       if (state && !validNotebook(state)) {
         reject(new Error('历史数据格式无法读取，已停止写入以保护原记录'))
       } else resolve(state ?? emptyNotebook())
     }
-    transaction.onabort = () => reject(new Error('读取历史失败，请重新载入'))
+    transaction.onerror = () => {
+      const detail = errorDetail(transaction.error ?? request.error)
+      if (detail?.message) message = `读取历史失败：${detail.message}`
+      fail(new Error(message))
+    }
+    transaction.onabort = () => {
+      const detail = errorDetail(transaction.error ?? request.error)
+      if (detail?.message && message === '读取历史失败，请重新载入') message = `读取历史失败：${detail.message}`
+      fail(new Error(message))
+    }
   })
 }
 
 // 历史与变量在同一事务提交；失败保留原记录，多窗口修改则拒绝覆盖。
 export function saveNotebook(db: IDBDatabase, next: Notebook): Promise<Notebook> {
   return new Promise((resolve, reject) => {
+    let settled = false
+    const fail = (error: Error) => {
+      if (settled) return
+      settled = true
+      reject(error)
+    }
     const transaction = db.transaction('notebook', 'readwrite')
     const store = transaction.objectStore('notebook')
     const request = store.get('state')
     let message = '保存失败，请检查磁盘空间；原记录没有被覆盖'
+    let conflict = false
+    let putError: unknown
     const saved = { ...next, revision: next.revision + 1 }
+    request.onerror = () => {
+      message = saveErrorMessage(request.error)
+    }
     request.onsuccess = () => {
       if ((request.result?.revision ?? 0) !== next.revision) {
+        conflict = true
         message = '历史已在另一个窗口更新，请重新载入后再计算'
         transaction.abort()
         return
       }
       try {
-        store.put(saved, 'state')
-      } catch {
+        const putRequest = store.put(saved, 'state')
+        putRequest.onerror = () => {
+          putError = putRequest.error
+          message = saveErrorMessage(putRequest.error)
+        }
+      } catch (cause) {
+        putError = cause
+        message = saveErrorMessage(cause)
         transaction.abort()
       }
     }
-    transaction.oncomplete = () => resolve(saved)
-    transaction.onabort = () => reject(new Error(message))
+    transaction.oncomplete = () => {
+      if (settled) return
+      settled = true
+      resolve(saved)
+    }
+    transaction.onerror = () => {
+      if (!conflict) {
+        const cause = transaction.error ?? putError ?? request.error
+        if (cause) message = saveErrorMessage(cause)
+      }
+      fail(new Error(message))
+    }
+    transaction.onabort = () => {
+      if (!conflict) {
+        const cause = transaction.error ?? putError ?? request.error
+        if (cause) message = saveErrorMessage(cause)
+      }
+      fail(new Error(message))
+    }
   })
 }

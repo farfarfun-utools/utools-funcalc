@@ -23,7 +23,7 @@
       "code": "quick-calc",
       "explain": "直接查看数字算式的结果",
       "mainPush": true,
-      "cmds": [{ "type": "regex", "label": "计算结果", "match": "^[\\s+.(（−-]*\\d[\\d\\s.eE+*/^%()×÷−（）-]*$", "maxLength": 500 }]
+      "cmds": [{ "type": "regex", "label": "计算结果", "match": "^(?=[\\d\\s.eE+*/^%()×÷−（）-]*[*/^%()×÷（）]|[\\s+.(（−-]*\\d[\\d.eE]*\\s*[+−-])[\\s+.(（−-]*\\d[\\d\\s.eE+*/^%()×÷−（）-]*$", "maxLength": 500 }]
     }
   ],
   "tools": {

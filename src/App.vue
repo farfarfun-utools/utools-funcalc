@@ -20,25 +20,48 @@ const search = ref<HTMLInputElement>()
 const clearDialog = ref<HTMLDialogElement>()
 const deleted = ref<Entry>()
 const theme = ref<'system' | 'light' | 'dark'>('system')
-let db: IDBDatabase | undefined
+const appVersion = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : ''
+let db: IDBDatabase | null = null
 let noticeTimer: ReturnType<typeof setTimeout> | undefined
+let unbindEnter: (() => void) | undefined
+let reloadPending = false
+const exportRevokes = new Map<ReturnType<typeof setTimeout>, string>()
 
+const dateFormat = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 const preview = computed(() => {
   if (!expression.value.trim()) return ''
   try { return expressionTex(expression.value) } catch { return '' }
 })
+const entryViews = computed(() => notebook.value.entries.map(entry => {
+  const text = valueText(entry.value)
+  return {
+    entry,
+    text,
+    tex: valueTex(entry.value),
+    size: valueSize(entry.value),
+    search: `${entry.expression} ${text}`.toLowerCase(),
+    iso: new Date(entry.createdAt).toISOString(),
+    formattedDate: dateFormat.format(entry.createdAt),
+  }
+}))
 const filtered = computed(() => {
   const keyword = query.value.trim().toLowerCase()
-  return notebook.value.entries.filter(entry => !keyword || `${entry.expression} ${valueText(entry.value)}`.toLowerCase().includes(keyword))
+  return entryViews.value.filter(item => !keyword || item.search.includes(keyword))
 })
-const variables = computed(() => Object.entries(notebook.value.variables))
+const visibleEntries = computed(() => filtered.value.slice(0, limit.value))
+const variableItems = computed(() => Object.entries(notebook.value.variables).map(([name, value]) => ({
+  name,
+  value,
+  text: valueText(value),
+  tex: valueTex(value),
+  size: name === 'ans' ? '上次结果' : valueSize(value),
+})))
 const examples = [
   { title: '日常计算', expression: '(128 + 64) * 0.85', note: '括号、百分比、精确小数' },
   { title: '定义变量', expression: 'price = 128', note: '存下常用数值，接着计算' },
   { title: '矩阵运算', expression: 'A = [1, 2; 3, 4]', note: '分号换行，逗号分列' },
 ]
 const functions = ['sqrt(2)', 'sin(pi / 6)', 'det(A)', 'inv(A)', 'transpose(A)', 'A * A', 'A .* A']
-const dateFormat = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 
 function uniqueEntries(entries: Entry[]): Entry[] {
   const seen = new Set<string>()
@@ -69,15 +92,27 @@ async function focusInput(select = false) {
   if (select) input.value?.select()
 }
 
+async function ensureDb(): Promise<IDBDatabase> {
+  if (!db) db = await openNotebook(() => { db = null })
+  return db
+}
+
 async function load() {
-  if (busy.value) return
+  if (busy.value) {
+    reloadPending = true
+    return
+  }
   busy.value = true
   try {
-    db ??= await openNotebook()
-    const saved = await readNotebook(db)
-    notebook.value = { ...saved, entries: uniqueEntries(saved.entries) }
-    ready.value = true
-    error.value = ''
+    do {
+      reloadPending = false
+      const activeDb = await ensureDb()
+      const saved = await readNotebook(activeDb)
+      notebook.value = { ...saved, entries: uniqueEntries(saved.entries) }
+      deleted.value = undefined
+      ready.value = true
+      error.value = ''
+    } while (reloadPending)
   } catch (cause) {
     ready.value = false
     error.value = errorText(cause)
@@ -85,17 +120,21 @@ async function load() {
 }
 
 async function persist(next: Notebook): Promise<boolean> {
-  if (!db || !ready.value || busy.value) return false
+  if (!ready.value || busy.value) return false
   busy.value = true
   try {
+    const activeDb = await ensureDb()
     // IndexedDB 不能克隆 Vue Proxy；提交普通数据，成功之后再替换界面状态。
-    notebook.value = await saveNotebook(db, JSON.parse(JSON.stringify(next)) as Notebook)
+    notebook.value = await saveNotebook(activeDb, JSON.parse(JSON.stringify(next)) as Notebook)
     error.value = ''
     return true
   } catch (cause) {
     error.value = errorText(cause)
     return false
-  } finally { busy.value = false }
+  } finally {
+    busy.value = false
+    if (reloadPending) void load()
+  }
 }
 
 async function submit() {
@@ -149,8 +188,9 @@ function shortcut(event: KeyboardEvent) {
   }
 }
 
-async function copy(text: string) {
+async function copy(source: string | (() => string)) {
   try {
+    const text = typeof source === 'function' ? source() : source
     if (window.utools) {
       if (!window.utools.copyText(text)) throw new Error('复制失败，请重试')
     } else await navigator.clipboard.writeText(text)
@@ -197,12 +237,16 @@ function exportHistory() {
     link.href = url
     link.download = `funcalc-${new Date().toISOString().slice(0, 10)}.json`
     link.click()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    const timer = setTimeout(() => {
+      exportRevokes.delete(timer)
+      URL.revokeObjectURL(url)
+    }, 1000)
+    exportRevokes.set(timer, url)
   } catch (cause) { error.value = errorText(cause) }
 }
 
 onMounted(async () => {
-  window.utools?.registerTool?.('calculate_expression', ({ expression }) => calculateForAgent(expression))
+  window.utools?.registerTool?.('calculate_expression', params => calculateForAgent(params?.expression))
   window.utools?.onMainPush?.(action => {
     if (action.code !== 'quick-calc' || typeof action.payload !== 'string') return []
     try { return [{ text: valueText(calculate(action.payload, {}).value), title: '选择后复制结果' }] }
@@ -216,18 +260,29 @@ onMounted(async () => {
     if (saved === 'light' || saved === 'dark') theme.value = saved
   } catch { /* 无偏好时跟随系统。 */ }
   window.addEventListener('keydown', shortcut)
-  await load()
-  window.funcalc?.onEnter(action => {
+  let enteredOnMount = false
+  unbindEnter = window.funcalc?.onEnter(action => {
+    enteredOnMount = true
     if (action.code === 'calculate-selection' && typeof action.payload === 'string') expression.value = action.payload.slice(0, 500)
     window.utools?.setExpandHeight?.(620)
     void load().then(() => focusInput())
   })
-  void focusInput()
+  if (!enteredOnMount) {
+    await load()
+    void focusInput()
+  }
 })
 onBeforeUnmount(() => {
   clearTimeout(noticeTimer)
+  for (const [timer, url] of exportRevokes) {
+    clearTimeout(timer)
+    URL.revokeObjectURL(url)
+  }
+  exportRevokes.clear()
+  unbindEnter?.()
   window.removeEventListener('keydown', shortcut)
   db?.close()
+  db = null
 })
 </script>
 
@@ -266,7 +321,7 @@ onBeforeUnmount(() => {
 
         <div class="history-toolbar">
           <h1>计算历史 <span>{{ notebook.entries.length }}</span></h1>
-          <div class="history-tools"><button :disabled="!ready || (!notebook.entries.length && !variables.length)" @click="exportHistory">导出</button><button :disabled="busy || !notebook.entries.length" @click="clearDialog?.showModal()">清空</button></div>
+          <div class="history-tools"><button :disabled="!ready || (!notebook.entries.length && !variableItems.length)" @click="exportHistory">导出</button><button :disabled="busy || !notebook.entries.length" @click="clearDialog?.showModal()">清空</button></div>
         </div>
         <div class="search-box"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4.5 4.5" /></svg><input ref="search" v-model="query" type="search" aria-label="搜索历史" placeholder="搜索表达式或结果"><kbd>⌘ / Ctrl K</kbd></div>
 
@@ -278,32 +333,32 @@ onBeforeUnmount(() => {
         </div>
         <p v-else-if="!filtered.length && ready" class="no-results">没有匹配的记录，换个关键词试试。</p>
         <ol v-else class="history-list" aria-label="计算历史记录">
-          <li v-for="(entry, index) in filtered.slice(0, limit)" :key="entry.id" class="history-card" :class="{ latest: index === 0 && !query }">
-            <button class="entry-expression" :title="`重新编辑 ${entry.expression}，计算时使用当前变量`" @click="useExpression(entry.expression)">{{ entry.expression }}<span aria-hidden="true">↗</span></button>
-            <time class="entry-meta" :datetime="new Date(entry.createdAt).toISOString()">{{ dateFormat.format(entry.createdAt) }}</time>
-            <div class="entry-result"><span class="equals" aria-hidden="true">=</span><MathFormula :tex="valueTex(entry.value)" :label="valueText(entry.value)" /></div>
-            <div class="entry-actions"><span class="value-kind">{{ valueSize(entry.value) }}</span><button @click="copy(valueText(entry.value))">复制结果</button><button @click="copy(`${expressionTex(entry.expression)} = ${valueTex(entry.value)}`)">复制 LaTeX</button><button :disabled="busy" :aria-label="`删除记录 ${entry.expression}`" @click="removeEntry(entry)">删除</button></div>
+          <li v-for="(item, index) in visibleEntries" :key="item.entry.id" class="history-card" :class="{ latest: index === 0 && !query }">
+            <button class="entry-expression" :title="`重新编辑 ${item.entry.expression}，计算时使用当前变量`" @click="useExpression(item.entry.expression)">{{ item.entry.expression }}<span aria-hidden="true">↗</span></button>
+            <time class="entry-meta" :datetime="item.iso">{{ item.formattedDate }}</time>
+            <div class="entry-result"><span class="equals" aria-hidden="true">=</span><MathFormula :tex="item.tex" :label="item.text" /></div>
+            <div class="entry-actions"><span class="value-kind">{{ item.size }}</span><button @click="copy(item.text)">复制结果</button><button @click="copy(() => `${expressionTex(item.entry.expression)} = ${item.tex}`)">复制 LaTeX</button><button :disabled="busy" :aria-label="`删除记录 ${item.entry.expression}`" @click="removeEntry(item.entry)">删除</button></div>
           </li>
         </ol>
         <button v-if="filtered.length > limit" class="load-more" @click="limit += 30">再显示 30 条（剩余 {{ filtered.length - limit }} 条）</button>
       </section>
 
       <aside class="variables-pane" aria-label="变量">
-        <div class="section-heading"><h2>变量</h2><span>{{ variables.length }}</span></div>
+        <div class="section-heading"><h2>变量</h2><span>{{ variableItems.length }}</span></div>
         <p class="sidebar-hint">保存常用数值，点击名称插入。</p>
-        <div v-if="!variables.length" class="variable-empty"><span class="variable-icon" aria-hidden="true">x</span><p>给一个数起个名字</p><button class="text-button" @click="useExpression('price = 128')">试试 price = 128</button></div>
+        <div v-if="!variableItems.length" class="variable-empty"><span class="variable-icon" aria-hidden="true">x</span><p>给一个数起个名字</p><button class="text-button" @click="useExpression('price = 128')">试试 price = 128</button></div>
         <ul v-else class="variable-list">
-          <li v-for="[name, value] in variables" :key="name">
-            <div class="variable-head"><button class="variable-name" :title="`插入变量 ${name}`" @click="insert(name)">{{ name }}</button><button class="delete-variable" :disabled="busy" :aria-label="`删除变量 ${name}`" @click="removeVariable(name)">×</button></div>
-            <span class="variable-type">{{ name === 'ans' ? '上次结果' : valueSize(value) }}</span>
-            <MathFormula :tex="valueTex(value)" :label="valueText(value)" />
+          <li v-for="item in variableItems" :key="item.name">
+            <div class="variable-head"><button class="variable-name" :title="`插入变量 ${item.name}`" @click="insert(item.name)">{{ item.name }}</button><button class="delete-variable" :disabled="busy" :aria-label="`删除变量 ${item.name}`" @click="removeVariable(item.name)">×</button></div>
+            <span class="variable-type">{{ item.size }}</span>
+            <MathFormula :tex="item.tex" :label="item.text" />
           </li>
         </ul>
         <div class="sidebar-note"><strong>保留的是当时的答案</strong><p>变量变化不会改写历史。重新计算会使用当前变量，相同结果合并为最近一次。</p></div>
       </aside>
     </main>
 
-    <footer class="statusbar"><span role="status">{{ notice || (ready ? '历史与变量自动保存 · 无需联网' : '正在连接本机历史库') }}</span><button v-if="deleted" @click="undoDelete">撤销删除</button><span class="version">FunCalc 0.1</span></footer>
+    <footer class="statusbar"><span role="status">{{ notice || (ready ? '历史与变量自动保存 · 无需联网' : '正在连接本机历史库') }}</span><button v-if="deleted" @click="undoDelete">撤销删除</button><span class="version">FunCalc {{ appVersion }}</span></footer>
     <dialog ref="clearDialog" class="confirm-dialog" aria-labelledby="clear-title">
       <h2 id="clear-title">清空全部计算历史？</h2><p>将删除 {{ notebook.entries.length }} 条记录，变量会保留。此操作不可撤销，建议先导出。</p>
       <div class="dialog-actions"><button autofocus @click="clearDialog?.close()">取消</button><button class="danger" :disabled="busy" @click="clearHistory">确认清空</button></div>

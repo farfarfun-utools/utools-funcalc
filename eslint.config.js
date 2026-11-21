@@ -22,7 +22,7 @@ export default [
   {
     files: ['src/**'],
     languageOptions: {
-      globals: { ...globals.browser, utools: 'readonly' },
+      globals: { ...globals.browser, utools: 'readonly', __APP_VERSION__: 'readonly' },
     },
   },
   {
@@ -55,7 +55,7 @@ export default [
       // 这些地方的空值检查是有意为之，不按未使用变量/表达式处理。
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrors: 'none' }],
-      // 单行 if/else 是本项目的既有风格（见 useFunLink.ts 的视图分支），不强制换行加括号。
+      // 允许单行 if/else，不强制换行加括号。
       'curly': 'off',
       'vue/max-attributes-per-line': 'off',
       'vue/singleline-html-element-content-newline': 'off',
@@ -63,9 +63,8 @@ export default [
       'vue/html-self-closing': 'off',
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // 同一个模块被 import 两次没人看得出来，但确实发生过（NoteDialog、BookmarkDialog
-      // 都从 lib/core 导了两行）。这条规则只看模块路径、不区分 import type，
-      // 所以既要取值又要取类型时请写成行内的 `type X`，别拆成两条。
+      // 这条规则只看模块路径、不区分 import type，
+      // 既要取值又要取类型时请写成行内的 `type X`，避免重复 import。
       'no-duplicate-imports': 'error',
     },
   },

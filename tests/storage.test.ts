@@ -70,3 +70,14 @@ test('损坏的存档不会被当成空历史继续写入', async () => {
   })
   await expect(readNotebook(db)).rejects.toThrow('停止写入')
 })
+
+test('onversionchange 关闭连接并通知上层重开恢复读写', async () => {
+  const onClose = vi.fn()
+  db.close()
+  db = await openNotebook(onClose)
+  const first = await saveNotebook(db, append(emptyNotebook(), 'x = 42'))
+  db.onversionchange?.(new Event('versionchange') as IDBVersionChangeEvent)
+  expect(onClose).toHaveBeenCalledTimes(1)
+  db = await openNotebook(onClose)
+  expect(await readNotebook(db)).toEqual(first)
+})

@@ -1,6 +1,118 @@
-import { all, create, type AssignmentNode, type FunctionNode, type MathNode, type OperatorNode, type SymbolNode } from 'mathjs'
+import {
+  absDependencies,
+  acosDependencies,
+  addDependencies,
+  asinDependencies,
+  atanDependencies,
+  bignumberDependencies,
+  ceilDependencies,
+  compileDependencies,
+  cosDependencies,
+  create,
+  crossDependencies,
+  detDependencies,
+  divideDependencies,
+  dotDependencies,
+  dotDivideDependencies,
+  dotMultiplyDependencies,
+  dotPowDependencies,
+  eDependencies,
+  evaluateDependencies,
+  expDependencies,
+  floorDependencies,
+  formatDependencies,
+  indexDependencies,
+  invDependencies,
+  log10Dependencies,
+  logDependencies,
+  matrixDependencies,
+  maxDependencies,
+  maxTransformDependencies,
+  meanDependencies,
+  meanTransformDependencies,
+  minDependencies,
+  minTransformDependencies,
+  modDependencies,
+  multiplyDependencies,
+  normDependencies,
+  parseDependencies,
+  piDependencies,
+  powDependencies,
+  roundDependencies,
+  sinDependencies,
+  sizeDependencies,
+  sqrtDependencies,
+  subsetDependencies,
+  subtractDependencies,
+  sumDependencies,
+  sumTransformDependencies,
+  tanDependencies,
+  tauDependencies,
+  traceDependencies,
+  transposeDependencies,
+  unaryMinusDependencies,
+  unaryPlusDependencies,
+  type AssignmentNode,
+  type FunctionNode,
+  type MathNode,
+  type OperatorNode,
+  type SymbolNode,
+} from 'mathjs'
 
-const math = create(all, { number: 'BigNumber', precision: 40, predictable: true })
+const math = create({
+  absDependencies,
+  acosDependencies,
+  addDependencies,
+  asinDependencies,
+  atanDependencies,
+  bignumberDependencies,
+  ceilDependencies,
+  compileDependencies,
+  cosDependencies,
+  crossDependencies,
+  detDependencies,
+  divideDependencies,
+  dotDependencies,
+  dotDivideDependencies,
+  dotMultiplyDependencies,
+  dotPowDependencies,
+  eDependencies,
+  evaluateDependencies,
+  expDependencies,
+  floorDependencies,
+  formatDependencies,
+  indexDependencies,
+  invDependencies,
+  log10Dependencies,
+  logDependencies,
+  matrixDependencies,
+  maxDependencies,
+  maxTransformDependencies,
+  meanDependencies,
+  meanTransformDependencies,
+  minDependencies,
+  minTransformDependencies,
+  modDependencies,
+  multiplyDependencies,
+  normDependencies,
+  parseDependencies,
+  piDependencies,
+  powDependencies,
+  roundDependencies,
+  sinDependencies,
+  sizeDependencies,
+  sqrtDependencies,
+  subsetDependencies,
+  subtractDependencies,
+  sumDependencies,
+  sumTransformDependencies,
+  tanDependencies,
+  tauDependencies,
+  traceDependencies,
+  transposeDependencies,
+  unaryMinusDependencies,
+  unaryPlusDependencies,
+}, { number: 'BigNumber', precision: 40, predictable: true })
 export type Value = string | string[] | string[][]
 export type Variables = Record<string, Value>
 export const FUNCTIONS = ['sqrt', 'abs', 'exp', 'log', 'log10', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'round', 'floor', 'ceil', 'min', 'max', 'sum', 'mean', 'det', 'inv', 'transpose', 'trace', 'norm', 'dot', 'cross', 'dotMultiply', 'dotDivide']
@@ -9,7 +121,9 @@ const allowedNodes = new Set(['ConstantNode', 'SymbolNode', 'OperatorNode', 'Par
 const allowedOperators = new Set(['+', '-', '*', '/', '^', '%', '.*', './', '.^'])
 
 export function validName(name: string): boolean {
-  return /^[A-Za-z][A-Za-z0-9_]{0,31}$/.test(name) && ![...FUNCTIONS, ...constants, 'constructor', 'prototype', 'ans'].includes(name)
+  return /^[A-Za-z][A-Za-z0-9_]{0,31}$/.test(name)
+    && !(name in Object.prototype)
+    && ![...FUNCTIONS, ...constants, 'constructor', 'prototype', 'ans'].includes(name)
 }
 
 function parse(expression: string): MathNode {
@@ -76,6 +190,15 @@ export function valueSize(value: Value): string {
   return Array.isArray(value[0]) ? `${value.length} × ${value[0].length} 矩阵` : `${value.length} 维向量`
 }
 
+function validExponent(value: Value, allowCollection: boolean): boolean {
+  if (typeof value === 'string') return math.bignumber(value).abs().lte(1000)
+  if (!allowCollection) return false
+  for (const item of value) {
+    if (!validExponent(item, true)) return false
+  }
+  return true
+}
+
 export function calculate(expression: string, variables: Variables): { value: Value; variables: Variables } {
   const root = parse(expression)
   const scope = new Map(Object.entries(variables).map(([name, value]) => [name, decode(value)]))
@@ -85,7 +208,7 @@ export function calculate(expression: string, variables: Variables): { value: Va
   })
   for (const power of powers.reverse()) {
     const exponent = encode(power.args[1].compile().evaluate(scope))
-    if (typeof exponent !== 'string' || math.bignumber(exponent).abs().gt(1000)) throw new Error('幂指数须为绝对值不超过 1000 的实数')
+    if (!validExponent(exponent, power.op === '.^')) throw new Error('幂指数须为绝对值不超过 1000 的实数')
   }
   root.traverse(node => {
     if (node.type === 'ArrayNode') encode(node.compile().evaluate(scope))
@@ -94,7 +217,7 @@ export function calculate(expression: string, variables: Variables): { value: Va
   const next: Variables = { ...variables, ans: value }
   if (root.type === 'AssignmentNode') {
     const name = (root as AssignmentNode).name
-    if (!(name in variables) && Object.keys(variables).filter(key => key !== 'ans').length >= 64) throw new Error('最多保留 64 个变量，请先删除不再使用的变量')
+    if (!Object.hasOwn(variables, name) && Object.keys(variables).filter(key => key !== 'ans').length >= 64) throw new Error('最多保留 64 个变量，请先删除不再使用的变量')
     next[name] = value
   }
   return { value, variables: next }
