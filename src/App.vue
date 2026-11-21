@@ -301,12 +301,14 @@ onBeforeUnmount(() => {
       <section ref="mainPane" class="main-pane" aria-label="计算笔记本">
         <div class="composer">
           <div class="section-heading"><label for="expression">开始计算</label><span>40 位有效数字 · 弧度制</span></div>
-          <div class="input-box">
-            <textarea id="expression" ref="input" v-model="expression" maxlength="500" rows="2" spellcheck="false" placeholder="输入表达式，例如 (128 + 64) × 0.85" aria-describedby="input-hint" @keydown="keydown"></textarea>
-            <button class="calculate" :disabled="!ready || busy || !expression.trim()" @click="submit">{{ busy ? '处理中…' : '计算' }} <span aria-hidden="true">↵</span></button>
+          <div class="input-box" :class="{ 'has-preview': Boolean(preview) }">
+            <div class="input-row">
+              <textarea id="expression" ref="input" v-model="expression" maxlength="500" rows="2" spellcheck="false" placeholder="输入表达式，例如 (128 + 64) × 0.85" aria-describedby="input-hint" @keydown="keydown"></textarea>
+              <button class="calculate" :disabled="!ready || busy || !expression.trim()" @click="submit">{{ busy ? '处理中…' : '计算' }} <span aria-hidden="true">↵</span></button>
+            </div>
+            <div v-if="preview" class="preview"><span class="eyebrow">公式预览</span><MathFormula :tex="preview" :label="expression" /></div>
           </div>
           <div id="input-hint" class="input-hint"><span><kbd>Enter</kbd> 计算并保存 <span class="hint-divider">·</span> <kbd>↑</kbd> 空输入时取上一条</span><button class="text-button" @click="insert('[1, 2; 3, 4]')">插入矩阵</button></div>
-          <div v-if="preview" class="preview"><span class="eyebrow">公式预览</span><MathFormula :tex="preview" :label="expression" /></div>
           <div v-if="error" class="error" role="alert"><span>{{ error }}</span><button :disabled="busy" @click="load">重新载入记录</button></div>
           <p v-else-if="!ready" class="muted" role="status">正在读取本机记录…</p>
         </div>
